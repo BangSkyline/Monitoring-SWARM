@@ -1,10 +1,9 @@
-# Monitoring Docker Swarm – Prometheus + Grafana + cAdvisor + Node Exporter + Swarm Scheduler Exporter
-
-
+# Monitoring Docker Swarm – 
+Prometheus + Grafana + cAdvisor + Node Exporter + Swarm Scheduler Exporter
 
 Ce projet met en place une stack de monitoring complète pour un **cluster Docker Swarm** de 4 nœuds (1 manager + 3 workers).
-
-
+On garde une machine en standalone (séparée du cluster) afin d'héberger Prometheus et Grafana (services critiques à ne pas orchestrer).
+Suite logique de https://github.com/BangSkyline/Pluton-Charon -> Monitoring d'une instance Docker Standalone.
 
 **Composants principaux :**
 
@@ -18,11 +17,7 @@ Ce projet met en place une stack de monitoring complète pour un **cluster Docke
 
 - Swarm Scheduler Exporter (métriques niveau Swarm : services, tâches, scheduling, etc.)
 
-
-
-\## Architecture
-
-
+## Architecture
 
 - **Prometheus** : tourne en standalone sur IP fixe 192.168.95.40:8180 → 9090
 
@@ -34,19 +29,13 @@ Ce projet met en place une stack de monitoring complète pour un **cluster Docke
 
 - **Swarm Scheduler Exporter** : replicated, 1 replica, contraint sur le manager (9338)
 
-
-
 Réseaux :
 
 - `cosmoserv1` → réseau macvlan pour Prometheus + Grafana (standalone)
 
 - `cosmos` → réseau overlay Swarm pour les exporters
 
-
-
 ## Prérequis
-
-
 
 - Docker et Docker Swarm installés et opérationnels
 
@@ -58,19 +47,11 @@ Réseaux :
 
 - Accès root sur le manager/workers et sur la machine standalone
 
-
-
 ## Installation
-
-
 
 ### 1. Création des répertoires et fichier de configuration Prometheus
 
-
-
-Sur la machine où tourne Prometheus (standalone) :
-
-
+Sur la machine où tournera Prometheus (standalone) :
 
 ```bash
 
@@ -79,12 +60,7 @@ sudo mkdir -p /opt/monitoring/prometheus/
 sudo nano /opt/monitoring/prometheus/prometheus.yml
 
 ```
-
-
-
 Prometheus.yml : 
-
-
 
 ```bash
 
@@ -143,8 +119,6 @@ scrape_configs:
 
 ```
 
-
-
 Vérification :
 
 Bash```
@@ -155,11 +129,7 @@ ls -l /opt/monitoring/prometheus/prometheus.yml
 
 (doit afficher : -rw-r--r-- 1 root root ... prometheus.yml)
 
-
-
 ### 2. Déploiement de la stack standalone (Prometheus + Grafana)
-
-
 
 Créez le fichier docker-compose.yml sur la machine standalone.
 
@@ -175,27 +145,17 @@ Accès Grafana : http://192.168.95.42:8184
 
 Identifiants : admin / Skyline
 
-
-
 ### 3. Déploiement des exporters sur le cluster Swarm (Manager)
 
-
-
 Sur le manager Swarm :
-
-
 
 ```bash
 
 docker stack deploy -c docker-compose-monitoring.yml monitoring
 
-
-
 Contenu recommandé du fichier docker-compose-monitoring.yml :
 
 ```bash
-
-
 version: "3.8"
 
 networks:
@@ -272,11 +232,7 @@ services:
     
 ```
 
-
-
 ### Vérifications rapides :
-
-
 
 Prometheus targets : http://192.168.95.40:8180/targets
 
@@ -294,11 +250,7 @@ Grafana : ajoutez la datasource Prometheus
 
 URL : http://192.168.95.40:8180
 
-
-
 ## Améliorations futures possibles :
-
-
 
 Ajout d'alerting Grafana (OOM, CPU throttle, disque >90%, replicas manquants)
 
