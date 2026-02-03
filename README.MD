@@ -1,5 +1,4 @@
-# Monitoring Docker Swarm – 
-Prometheus + Grafana + cAdvisor + Node Exporter + Swarm Scheduler Exporter
+# Monitoring Docker Swarm – Prometheus + Grafana + cAdvisor + Node Exporter + Swarm Scheduler Exporter
 
 Ce projet met en place une stack de monitoring complète pour un **cluster Docker Swarm** de 4 nœuds (1 manager + 3 workers).
 On garde une machine en standalone (séparée du cluster) afin d'héberger Prometheus et Grafana (services critiques à ne pas orchestrer).
