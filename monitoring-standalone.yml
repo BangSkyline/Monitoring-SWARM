@@ -1,0 +1,48 @@
+version: '3.8'
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  cosmoserv1:
+    external: true
+
+services:
+
+  prometheus:
+    image: prom/prometheus:v2.49.1
+    container_name: prometheus
+    networks:
+      cosmoserv1:
+        ipv4_address: 192.168.95.40
+    volumes:
+      - prometheus_data:/prometheus
+      - /opt/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+      - "--storage.tsdb.retention.size=15GB"
+    ports:
+      - "8180:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: grafana
+    user: "472"
+    networks:
+      cosmoserv1:
+        ipv4_address: 192.168.95.42
+    ports:
+      - "8184:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=Skyline
+      - GF_SERVER_ROOT_URL=http://192.168.95.42:8184
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped

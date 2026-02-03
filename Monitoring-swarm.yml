@@ -1,0 +1,74 @@
+version: "3.8"
+
+networks:
+  cosmos:
+    external: true
+
+services:
+  node_exporter:
+    image: prom/node-exporter:v1.8.1
+    networks:
+      - cosmos
+    deploy:
+      mode: global
+    ports:
+      - target: 9100
+        published: 9100
+        protocol: tcp
+        mode: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/rootfs"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|run|var/lib/docker/.+|var/lib/kubelet/.+)($$|/)"
+    restart: unless-stopped
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    networks:
+      - cosmos
+    deploy:
+      mode: global
+    ports:
+      - target: 8080
+        published: 8183
+        protocol: tcp
+        mode: host
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    privileged: true
+    restart: unless-stopped
+
+  swarm-exporter:
+    image: ghcr.io/leinardi/swarm-scheduler-exporter:latest
+    user: root
+    command:
+      - "-log-level=info" 
+      - "-log-format=text"
+      - "-containers"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - cosmos
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      - target: 8888                
+        published: 9338
+        protocol: tcp
+        mode: host
+    restart: unless-stopped
+    
